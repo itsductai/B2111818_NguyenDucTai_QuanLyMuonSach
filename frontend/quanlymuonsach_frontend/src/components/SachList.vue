@@ -1,53 +1,76 @@
 <template>
-  <div class="sach-list">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2>Danh sách sách</h2>
-      <div class="search-box">
+  <div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Quản lý sách</h2>
+      <button
+        @click="$router.push('/sach/them')"
+        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center"
+      >
+        <i class="fas fa-plus mr-2"></i>
+        Thêm sách mới
+      </button>
+    </div>
+
+    <!-- Thanh tìm kiếm -->
+    <div class="mb-6">
+      <div class="relative">
         <input
           v-model="searchTerm"
           type="text"
-          class="form-control"
-          placeholder="Tìm kiếm sách..."
+          placeholder="Tìm kiếm theo tên sách hoặc tác giả..."
+          class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           @input="handleSearch"
         />
+        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
       </div>
     </div>
 
-    <!-- Bảng hiển thị danh sách sách -->
-    <div class="table-responsive">
-      <table class="table table-striped table-hover">
-        <thead class="table-dark">
+    <!-- Bảng danh sách -->
+    <div class="overflow-x-auto bg-white rounded-lg shadow">
+      <table class="min-w-full table-auto">
+        <thead class="bg-gray-50">
           <tr>
-            <th>Mã sách</th>
-            <th>Tên sách</th>
-            <th>Nhà xuất bản</th>
-            <th>Đơn giá</th>
-            <th>Số quyển</th>
-            <th>Năm XB</th>
-            <th>Thao tác</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã sách</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên sách</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tác giả</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nhà xuất bản</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đơn giá</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Số quyển</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Năm XB</th>
+            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Thao tác</th>
           </tr>
         </thead>
-        <tbody>
-          <tr v-for="sach in sachList" :key="sach._id">
-            <td>{{ sach.maSach }}</td>
-            <td>{{ sach.tenSach }}</td>
-            <td>{{ sach.maNXB?.tenNXB }}</td>
-            <td>{{ formatCurrency(sach.donGia) }}</td>
-            <td>{{ sach.soQuyen }}</td>
-            <td>{{ sach.namXuatBan }}</td>
-            <td>
-              <button
-                class="btn btn-primary btn-sm me-2"
-                @click="editSach(sach)"
-              >
-                <i class="fas fa-edit"></i>
-              </button>
-              <button
-                class="btn btn-danger btn-sm"
-                @click="deleteSach(sach._id)"
-              >
-                <i class="fas fa-trash"></i>
-              </button>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr v-for="sach in sachList" :key="sach._id" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ sach.maSach }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sach.tenSach }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sach.tacGia }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sach.maNXB?.tenNXB }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ formatCurrency(sach.donGia) }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sach.soQuyen }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ sach.namXuatBan }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <div class="flex justify-center space-x-2">
+                <button
+                  @click="$router.push(`/sach/sua/${sach._id}`)"
+                  class="text-blue-600 hover:text-blue-900"
+                  title="Sửa"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  @click="confirmDelete(sach)"
+                  class="text-red-600 hover:text-red-900"
+                  title="Xóa"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr v-if="sachList.length === 0">
+            <td colspan="8" class="px-6 py-4 text-center text-gray-500">
+              Không có dữ liệu
             </td>
           </tr>
         </tbody>
@@ -55,138 +78,124 @@
     </div>
 
     <!-- Phân trang -->
-    <div class="d-flex justify-content-between align-items-center mt-4">
-      <div>Hiển thị {{ sachList.length }} / {{ totalSach }} sách</div>
-      <nav>
-        <ul class="pagination">
-          <li class="page-item" :class="{ disabled: currentPage === 1 }">
-            <a
-              class="page-link"
-              href="#"
-              @click.prevent="changePage(currentPage - 1)"
-            >
-              Trước
-            </a>
-          </li>
-          <li
-            v-for="page in totalPages"
-            :key="page"
-            class="page-item"
-            :class="{ active: currentPage === page }"
-          >
-            <a class="page-link" href="#" @click.prevent="changePage(page)">
-              {{ page }}
-            </a>
-          </li>
-          <li
-            class="page-item"
-            :class="{ disabled: currentPage === totalPages }"
-          >
-            <a
-              class="page-link"
-              href="#"
-              @click.prevent="changePage(currentPage + 1)"
-            >
-              Sau
-            </a>
-          </li>
-        </ul>
-      </nav>
+    <div class="mt-4 flex justify-between items-center">
+      <div class="text-sm text-gray-700">
+        Hiển thị {{ sachList.length }} / {{ totalItems }} kết quả
+      </div>
+      <div class="flex space-x-2">
+        <button
+          :disabled="currentPage === 1"
+          @click="changePage(currentPage - 1)"
+          class="px-3 py-1 rounded border"
+          :class="currentPage === 1 ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button
+          v-for="page in totalPages"
+          :key="page"
+          @click="changePage(page)"
+          class="px-3 py-1 rounded border"
+          :class="currentPage === page ? 'bg-blue-500 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'"
+        >
+          {{ page }}
+        </button>
+        <button
+          :disabled="currentPage === totalPages"
+          @click="changePage(currentPage + 1)"
+          class="px-3 py-1 rounded border"
+          :class="currentPage === totalPages ? 'bg-gray-100 text-gray-400' : 'bg-white text-gray-700 hover:bg-gray-50'"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 
 export default {
-  name: "SachList",
-  data() {
-    return {
-      sachList: [],
-      currentPage: 1,
-      totalPages: 0,
-      totalSach: 0,
-      searchTerm: "",
-      searchTimeout: null,
-    };
-  },
-  created() {
-    this.fetchSach();
-  },
-  methods: {
-    async fetchSach() {
+  name: 'SachList',
+  setup() {
+    const sachList = ref([])
+    const currentPage = ref(1)
+    const totalPages = ref(1)
+    const totalItems = ref(0)
+    const searchTerm = ref('')
+    const searchTimeout = ref(null)
+
+    const fetchSach = async (page = 1) => {
       try {
-        const response = await axios.get(`http://localhost:3000/api/sach`, {
-          params: {
-            page: this.currentPage,
-            limit: 10,
-            tenSach: this.searchTerm,
-          },
-        });
-        this.sachList = response.data.sach;
-        this.totalPages = response.data.totalPages;
-        this.totalSach = response.data.totalSach;
+        const response = await axios.get(`http://localhost:3000/api/sach?page=${page}&limit=10`)
+        sachList.value = response.data.sach
+        currentPage.value = response.data.currentPage
+        totalPages.value = response.data.totalPages
+        totalItems.value = response.data.total
       } catch (error) {
-        console.error("Lỗi khi lấy danh sách sách:", error);
+        console.error('Lỗi khi lấy danh sách sách:', error)
       }
-    },
-    formatCurrency(value) {
-      return new Intl.NumberFormat("vi-VN", {
-        style: "currency",
-        currency: "VND",
-      }).format(value);
-    },
-    handleSearch() {
-      if (this.searchTimeout) {
-        clearTimeout(this.searchTimeout);
+    }
+
+    const handleSearch = () => {
+      if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value)
       }
-      this.searchTimeout = setTimeout(() => {
-        this.currentPage = 1;
-        this.fetchSach();
-      }, 300);
-    },
-    changePage(page) {
-      if (page >= 1 && page <= this.totalPages) {
-        this.currentPage = page;
-        this.fetchSach();
-      }
-    },
-    editSach(sach) {
-      this.$emit("edit-sach", sach);
-    },
-    async deleteSach(id) {
-      if (confirm("Bạn có chắc chắn muốn xóa sách này?")) {
+      searchTimeout.value = setTimeout(async () => {
         try {
-          await axios.delete(`http://localhost:3000/api/sach/${id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          });
-          this.fetchSach();
+          const response = await axios.get(`http://localhost:3000/api/sach/search?q=${searchTerm.value}`)
+          sachList.value = response.data
+          totalItems.value = response.data.length
+          totalPages.value = 1
+          currentPage.value = 1
         } catch (error) {
-          console.error("Lỗi khi xóa sách:", error);
+          console.error('Lỗi khi tìm kiếm sách:', error)
+        }
+      }, 300)
+    }
+
+    const changePage = (page) => {
+      if (page >= 1 && page <= totalPages.value) {
+        currentPage.value = page
+        fetchSach(page)
+      }
+    }
+
+    const confirmDelete = async (sach) => {
+      if (confirm(`Bạn có chắc chắn muốn xóa sách "${sach.tenSach}"?`)) {
+        try {
+          await axios.delete(`http://localhost:3000/api/sach/${sach._id}`)
+          await fetchSach(currentPage.value)
+        } catch (error) {
+          console.error('Lỗi khi xóa sách:', error)
         }
       }
-    },
-  },
-};
-</script>
+    }
 
-<style scoped>
-.sach-list {
-  padding: 20px;
-}
+    const formatCurrency = (value) => {
+      return new Intl.NumberFormat('vi-VN', {
+        style: 'currency',
+        currency: 'VND'
+      }).format(value)
+    }
 
-.search-box {
-  width: 300px;
-}
+    onMounted(() => {
+      fetchSach()
+    })
 
-.table th {
-  white-space: nowrap;
+    return {
+      sachList,
+      currentPage,
+      totalPages,
+      totalItems,
+      searchTerm,
+      handleSearch,
+      changePage,
+      confirmDelete,
+      formatCurrency
+    }
+  }
 }
-
-.pagination {
-  margin-bottom: 0;
-}
-</style>
+</script> 
