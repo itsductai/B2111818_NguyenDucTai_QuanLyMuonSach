@@ -3,6 +3,9 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const database = require('./config/db.config');
 
+// Import routes
+const authRoutes = require('./routes/auth.route');
+
 // Load biến môi trường
 dotenv.config();
 
@@ -18,7 +21,21 @@ database.connect();
 
 // Routes
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to QuanLyMuonSach API.' });
+    res.json({ message: 'Chào mừng đến với API Quản lý mượn sách.' });
+});
+
+// Sử dụng routes
+app.use('/api/auth', authRoutes);
+
+// Xử lý lỗi 404
+app.use((req, res) => {
+    res.status(404).json({ message: 'Không tìm thấy tài nguyên' });
+});
+
+// Xử lý lỗi chung
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ message: 'Lỗi server' });
 });
 
 // Khởi động server
