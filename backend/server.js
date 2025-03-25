@@ -5,6 +5,7 @@ const database = require('./config/db.config');
 
 // Import routes
 const authRoutes = require('./routes/auth.route');
+const sachRoutes = require('./routes/sach.route');
 
 // Load biến môi trường
 dotenv.config();
@@ -26,6 +27,7 @@ app.get('/', (req, res) => {
 
 // Sử dụng routes
 app.use('/api/auth', authRoutes);
+app.use('/api/sach', sachRoutes);
 
 // Xử lý lỗi 404
 app.use((req, res) => {
