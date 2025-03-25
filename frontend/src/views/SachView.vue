@@ -3,13 +3,14 @@
     <div class="row">
       <div class="col-12">
         <SachList
-          :sachList="sachStore.sachList"
-          :currentPage="sachStore.currentPage"
-          :totalPages="sachStore.totalPages"
+          :sachList="sachList"
+          :currentPage="currentPage"
+          :totalPages="totalPages"
           @add="openModal()"
           @edit="openModal($event)"
           @delete="handleDelete"
           @page-change="handlePageChange"
+          @search="handleSearch"
         />
 
         <SachModal
@@ -24,7 +25,7 @@
 </template>
 
 <script>
-import { useSachStore } from '@/stores/sach'
+import { sachService } from '@/services/api.service'
 import SachList from '@/components/SachList.vue'
 import SachModal from '@/components/SachModal.vue'
 
@@ -36,18 +37,27 @@ export default {
   },
   data() {
     return {
+      sachList: [],
+      currentPage: 1,
+      totalPages: 1,
       isModalOpen: false,
-      selectedSach: null
+      selectedSach: null,
+      searchTerm: ''
     }
   },
-  setup() {
-    const sachStore = useSachStore()
-    return { sachStore }
-  },
   async created() {
-    await this.sachStore.fetchSachList()
+    await this.fetchSachList()
   },
   methods: {
+    async fetchSachList() {
+      try {
+        const data = await sachService.getAll(this.currentPage)
+        this.sachList = data.sach
+        this.totalPages = data.totalPages
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách sách:', error)
+      }
+    },
     openModal(sach = null) {
       this.selectedSach = sach
       this.isModalOpen = true
@@ -59,26 +69,32 @@ export default {
     async handleSubmit(formData) {
       try {
         if (this.selectedSach) {
-          await this.sachStore.updateSach(this.selectedSach._id, formData)
+          await sachService.update(this.selectedSach._id, formData)
         } else {
-          await this.sachStore.createSach(formData)
+          await sachService.create(formData)
         }
+        await this.fetchSachList()
         this.closeModal()
       } catch (error) {
         console.error('Lỗi khi lưu sách:', error)
       }
     },
     async handleDelete(id) {
-      if (confirm('Bạn có chắc chắn muốn xóa sách này?')) {
-        try {
-          await this.sachStore.deleteSach(id)
-        } catch (error) {
-          console.error('Lỗi khi xóa sách:', error)
-        }
+      try {
+        await sachService.delete(id)
+        await this.fetchSachList()
+      } catch (error) {
+        console.error('Lỗi khi xóa sách:', error)
       }
     },
     async handlePageChange(page) {
-      await this.sachStore.fetchSachList(page)
+      this.currentPage = page
+      await this.fetchSachList()
+    },
+    async handleSearch(term) {
+      this.searchTerm = term
+      this.currentPage = 1
+      await this.fetchSachList()
     }
   }
 }
@@ -87,5 +103,7 @@ export default {
 <style scoped>
 .sach-view {
   padding: 20px;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 56px);
 }
 </style> 
