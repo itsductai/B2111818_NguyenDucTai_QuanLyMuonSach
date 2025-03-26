@@ -81,7 +81,7 @@ exports.create = async (req, res) => {
 exports.approveMuonSach = async (req, res) => {
     try {
         const { maNV } = req.body;
-        const muonSach = await TheoDoiMuonSach.findById(req.params.id);
+        const muonSach = await TheoDoiMuonSach.findById(req.params._id);
 
         if (!muonSach) {
             return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });

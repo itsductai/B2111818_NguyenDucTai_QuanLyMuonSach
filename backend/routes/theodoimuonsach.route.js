@@ -15,7 +15,7 @@ router.get('/', theoDoiMuonSachController.getAll);
  * @description Lấy thông tin một phiếu mượn
  * @access Private
  */
-router.get('/:id',theoDoiMuonSachController.getById);
+router.get('/:_id',theoDoiMuonSachController.getById);
 
 /**
  * @route POST /api/muon-sach
@@ -29,17 +29,17 @@ router.post('/', theoDoiMuonSachController.create);
  * @description Cập nhật thông tin phiếu mượn
  * @access Private
  */
-router.patch('/:id/duyet', theoDoiMuonSachController.approveMuonSach);
+router.patch('/:_id/duyet', theoDoiMuonSachController.approveMuonSach);
 
 
-router.put('/:id', theoDoiMuonSachController.update);
+router.put('/:_id', theoDoiMuonSachController.update);
 
 /**
  * @route DELETE /api/muon-sach/:id
  * @description Xóa phiếu mượn
  * @access Private
  */
-router.delete('/:id', theoDoiMuonSachController.delete);
+router.delete('/:_id', theoDoiMuonSachController.delete);
 
 /**
  * @route GET /api/muon-sach/doc-gia/:maDocGia

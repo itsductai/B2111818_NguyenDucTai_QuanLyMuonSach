@@ -30,7 +30,7 @@ exports.getAll = async (req, res) => {
 // Lấy thông tin một nhà xuất bản
 exports.getById = async (req, res) => {
     try {
-        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        const nhaXuatBan = await NhaXuatBan.findById(req.params._id);
         
         if (!nhaXuatBan) {
             return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
@@ -66,7 +66,7 @@ exports.create = async (req, res) => {
 // Cập nhật thông tin nhà xuất bản
 exports.update = async (req, res) => {
     try {
-        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        const nhaXuatBan = await NhaXuatBan.findById(req.params._id);
         if (!nhaXuatBan) {
             return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
         }
@@ -89,13 +89,13 @@ exports.update = async (req, res) => {
 // Xóa nhà xuất bản
 exports.delete = async (req, res) => {
     try {
-        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        const nhaXuatBan = await NhaXuatBan.findById(req.params._id);
         if (!nhaXuatBan) {
             return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
         }
 
         // Kiểm tra xem nhà xuất bản có sách không
-        const coSach = await Sach.findOne({ maNhaXuatBan: req.params.id });
+        const coSach = await Sach.findOne({ maNhaXuatBan: req.params._id });
         if (coSach) {
             return res.status(400).json({ message: 'Không thể xóa nhà xuất bản đang có sách' });
         }

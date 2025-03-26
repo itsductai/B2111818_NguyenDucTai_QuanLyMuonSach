@@ -22,7 +22,7 @@ router.get('/', nhanVienController.getAll);
  * @description Lấy thông tin một nhân viên
  * @access Private (Admin only)
  */
-router.get('/:id',  nhanVienController.getById);
+router.get('/:_id',  nhanVienController.getById);
 
 /**
  * @route POST /api/nhan-vien
@@ -36,13 +36,13 @@ router.post('/register',  nhanVienController.create);
  * @description Cập nhật thông tin nhân viên
  * @access Private (Admin only)
  */
-router.put('/:id',nhanVienController.update);
+router.put('/:_id',nhanVienController.update);
 
 /**
  * @route DELETE /api/nhan-vien/:id
  * @description Xóa nhân viên
  * @access Private (Admin only)
  */
-router.delete('/:id', nhanVienController.delete);
+router.delete('/:_id', nhanVienController.delete);
 
 module.exports = router; 

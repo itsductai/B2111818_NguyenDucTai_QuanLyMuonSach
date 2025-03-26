@@ -15,7 +15,7 @@ router.get('/', nhaXuatBanController.getAll);
  * @description Lấy thông tin một nhà xuất bản
  * @access Public
  */
-router.get('/:id', nhaXuatBanController.getById);
+router.get('/:_id', nhaXuatBanController.getById);
 
 /**
  * @route POST /api/nha-xuat-ban
@@ -29,13 +29,13 @@ router.post('/', nhaXuatBanController.create);
  * @description Cập nhật thông tin nhà xuất bản (chỉ Admin)
  * @access Private
  */
-router.put('/:id', nhaXuatBanController.update);
+router.put('/:_id', nhaXuatBanController.update);
 
 /**
  * @route DELETE /api/nha-xuat-ban/:id
  * @description Xóa nhà xuất bản (chỉ Admin)
  * @access Private
  */
-router.delete('/:id', nhaXuatBanController.delete);
+router.delete('/:_id', nhaXuatBanController.delete);
 
 module.exports = router; 

@@ -23,7 +23,7 @@ router.get('/search', sachController.search);
  * @description Lấy thông tin một sách
  * @access Public
  */
-router.get('/:id', sachController.getById);
+router.get('/:_id', sachController.getById);
 
 /**
  * @route POST /api/sach
@@ -38,21 +38,21 @@ console.log("Dung o day")
  * @description Cập nhật thông tin sách (chỉ Admin)
  * @access Private
  */
-router.put('/:id', sachController.update);
+router.put('/:_id', sachController.update);
 console.log("Dung o day")
 /**
  * @route DELETE /api/sach/:id
  * @description Xóa sách (chỉ Admin)
  * @access Private
  */
-router.delete('/:id', sachController.delete);
+router.delete('/:_id', sachController.delete);
 console.log("Dung o day")
 /**
  * @route PATCH /api/sach/:id/so-luong
  * @description Cập nhật số lượng sách (Admin và Nhân viên)
  * @access Private
  */
-router.patch('/:id/so-luong', sachController.updateSoQuyen);
+router.patch('/:_id/so-luong', sachController.updateSoQuyen);
 console.log("Dung o day!!!!!")
 /**
  * @route GET /api/sach/thong-ke/muon-nhieu-nhat
