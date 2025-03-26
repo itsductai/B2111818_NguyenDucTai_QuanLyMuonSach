@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const sachController = require('../controllers/sach.controller');
-const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
+const { auth, checkRole } = require('../middleware/auth.middleware');
 
 /**
  * @route GET /api/sach

@@ -1,47 +1,47 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const database = require('./config/db.config');
-
-// Import routes
-const authRoutes = require('./routes/auth.route');
-const sachRoutes = require('./routes/sach.route');
 
 // Load biến môi trường
 dotenv.config();
+
+// Import routes
+const sachRoute = require('./routes/sach.route');
+const nhaXuatBanRoute = require('./routes/nhaxuatban.route');
+const docGiaRoute = require('./routes/docgia.route');
+const nhanVienRoute = require('./routes/nhanvien.route');
+const theoDoiMuonSachRoute = require('./routes/theodoimuonsach.route');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Kết nối database
-database.connect();
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quanlymuonsach')
+    .then(() => console.log('Kết nối database thành công'))
+    .catch(err => console.error('Lỗi kết nối database:', err));
 
 // Routes
-app.get('/', (req, res) => {
-    res.json({ message: 'Chào mừng đến với API Quản lý mượn sách.' });
-});
+app.use('/api/sach', sachRoute);
+app.use('/api/nha-xuat-ban', nhaXuatBanRoute);
+app.use('/api/nhaxuatban', nhaXuatBanRoute);
+app.use('/api/doc-gia', docGiaRoute);
+app.use('/api/nhan-vien', nhanVienRoute);
+app.use('/api/muon-sach', theoDoiMuonSachRoute);
 
-// Sử dụng routes
-app.use('/api/auth', authRoutes);
-app.use('/api/sach', sachRoutes);
-
-// Xử lý lỗi 404
-app.use((req, res) => {
-    res.status(404).json({ message: 'Không tìm thấy tài nguyên' });
-});
-
-// Xử lý lỗi chung
+// Error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ message: 'Lỗi server' });
+    res.status(500).json({
+        message: 'Có lỗi xảy ra',
+        error: err.message
+    });
 });
 
-// Khởi động server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server đang chạy trên port ${PORT}`);
 }); 

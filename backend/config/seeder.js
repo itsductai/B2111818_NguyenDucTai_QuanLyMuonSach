@@ -1,121 +1,121 @@
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
 const NhaXuatBan = require('../models/NhaXuatBan.model');
 const Sach = require('../models/Sach.model');
 const DocGia = require('../models/DocGia.model');
 const NhanVien = require('../models/NhanVien.model');
-
-// Load biến môi trường
-dotenv.config();
+const TheoDoiMuonSach = require('../models/TheoDoiMuonSach.model');
+require('dotenv').config();
 
 // Kết nối database
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('Kết nối database thành công để chèn dữ liệu mẫu'))
-    .catch(err => console.error('Lỗi kết nối database:', err));
+    .catch((err) => console.error('Lỗi kết nối database:', err));
 
 // Dữ liệu mẫu nhà xuất bản
-const nhaxuatbanData = [
+const nhaXuatBanData = [
     {
         maNXB: 'NXB001',
-        tenNXB: 'NXB Trẻ',
-        diaChi: '161B Lý Chính Thắng, Phường 7, Quận 3, TPHCM'
+        tenNXB: 'NXB Kim Đồng',
+        diaChi: 'Số 55 Quang Trung, Hai Bà Trưng, Hà Nội'
     },
     {
         maNXB: 'NXB002',
-        tenNXB: 'NXB Kim Đồng',
-        diaChi: '55 Quang Trung, Hai Bà Trưng, Hà Nội'
+        tenNXB: 'NXB Trẻ',
+        diaChi: 'Số 161B Lý Chính Thắng, Phường 7, Quận 3, TP.HCM'
     },
     {
         maNXB: 'NXB003',
         tenNXB: 'NXB Giáo Dục',
-        diaChi: '81 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội'
+        diaChi: 'Số 81 Trần Hưng Đạo, Hoàn Kiếm, Hà Nội'
     }
 ];
 
 // Dữ liệu mẫu sách
 const sachData = [
     {
-        maSach: 'SACH001',
-        tenSach: 'Lập Trình Web Cơ Bản',
-        donGia: 150000,
+        tenSach: 'Doraemon',
+        tacGia: 'Fujiko F. Fujio',
+        namXuatBan: 2020,
         soQuyen: 50,
-        namXuatBan: 2023,
-        nguonGoc: 'Mua'
+        donGia: 35000,
+        hinhAnh: 'https://example.com/images/doraemon.jpg'
     },
     {
-        maSach: 'SACH002',
-        tenSach: 'JavaScript Nâng Cao',
-        donGia: 200000,
+        tenSach: 'Conan',
+        tacGia: 'Gosho Aoyama',
+        namXuatBan: 2021,
         soQuyen: 30,
-        namXuatBan: 2023,
-        nguonGoc: 'Mua'
+        donGia: 40000,
+        hinhAnh: 'https://example.com/images/conan.jpg'
     },
     {
-        maSach: 'SACH003',
-        tenSach: 'MongoDB cho Người Mới Bắt Đầu',
-        donGia: 180000,
-        soQuyen: 40,
-        namXuatBan: 2024,
-        nguonGoc: 'Mua'
+        tenSach: 'Toán học 12',
+        tacGia: 'Bộ Giáo Dục',
+        namXuatBan: 2022,
+        soQuyen: 100,
+        donGia: 20000,
+        hinhAnh: 'https://example.com/images/toan12.jpg'
     }
 ];
 
 // Dữ liệu mẫu độc giả
-const docgiaData = [
+const docGiaData = [
     {
-        maDocGia: 'DG001',
         hoLot: 'Nguyễn Văn',
-        ten: 'An',
-        ngaySinh: new Date('2000-01-15'),
+        ten: 'A',
+        ngaySinh: new Date('2000-01-01'),
         phai: 'Nam',
-        diaChi: '123 Nguyễn Văn Cừ, Quận 5, TPHCM',
-        dienThoai: '0901234567'
+        diaChi: 'Số 1 Tạ Quang Bửu, Hai Bà Trưng, Hà Nội',
+        dienThoai: '0123456789',
+        email: 'nguyenvana@gmail.com',
+        matKhau: '123456',
+        ngayDangKy: new Date(),
+        trangThai: 'Hoạt động'
     },
     {
-        maDocGia: 'DG002',
         hoLot: 'Trần Thị',
-        ten: 'Bình',
-        ngaySinh: new Date('2001-05-20'),
+        ten: 'B',
+        ngaySinh: new Date('2001-02-02'),
         phai: 'Nữ',
-        diaChi: '456 Lê Đại Hành, Quận 10, TPHCM',
-        dienThoai: '0912345678'
+        diaChi: 'Số 2 Lê Thanh Nghị, Hai Bà Trưng, Hà Nội',
+        dienThoai: '0987654321',
+        email: 'tranthib@gmail.com',
+        matKhau: '123456',
+        ngayDangKy: new Date(),
+        trangThai: 'Hoạt động'
     },
     {
-        maDocGia: 'DG003',
-        hoLot: 'Lê Hoàng',
-        ten: 'Công',
-        ngaySinh: new Date('1999-12-25'),
+        hoLot: 'Lê Văn',
+        ten: 'C',
+        ngaySinh: new Date('2002-03-03'),
         phai: 'Nam',
-        diaChi: '789 Lý Thường Kiệt, Quận 11, TPHCM',
-        dienThoai: '0923456789'
+        diaChi: 'Số 3 Giải Phóng, Hai Bà Trưng, Hà Nội',
+        dienThoai: '0369852147',
+        email: 'levanc@gmail.com',
+        matKhau: '123456',
+        ngayDangKy: new Date(),
+        trangThai: 'Hoạt động'
     }
 ];
 
 // Dữ liệu mẫu nhân viên
-const nhanvienData = [
+const nhanVienData = [
     {
-        maNV: 'NV001',
-        hoTenNV: 'Admin Hệ Thống',
-        password: 'admin123',
+        hoTenNV: 'Admin',
+        password: '123456',
         chucVu: 'Admin',
-        diaChi: '111 Nguyễn Thị Minh Khai, Q1, TPHCM',
-        soDienThoai: '0977777777'
+        diaChi: 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
+        soDienThoai: '0123456789',
+        email: 'admin@gmail.com'
     },
     {
-        maNV: 'NV002',
-        hoTenNV: 'Nhân Viên 1',
-        password: 'nv123456',
+        hoTenNV: 'Nhân viên 1',
+        password: '123456',
         chucVu: 'Nhân viên',
-        diaChi: '222 Lê Lợi, Q5, TPHCM',
-        soDienThoai: '0988888888'
-    },
-    {
-        maNV: 'NV003',
-        hoTenNV: 'Nhân Viên 2',
-        password: 'nv654321',
-        chucVu: 'Nhân viên',
-        diaChi: '333 Võ Văn Tần, Q3, TPHCM',
-        soDienThoai: '0999999999'
+        diaChi: 'Số 2 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
+        soDienThoai: '0987654321',
+        email: 'nhanvien1@gmail.com'
     }
 ];
 
@@ -127,33 +127,69 @@ const insertData = async () => {
         await Sach.deleteMany();
         await DocGia.deleteMany();
         await NhanVien.deleteMany();
+        await TheoDoiMuonSach.deleteMany();
 
         // Chèn nhà xuất bản
-        const nxbs = await NhaXuatBan.insertMany(nhaxuatbanData);
+        const nxbs = await NhaXuatBan.insertMany(nhaXuatBanData);
         console.log('Đã chèn dữ liệu nhà xuất bản');
 
-        // Chèn sách và liên kết với nhà xuất bản
-        const sachWithNXB = sachData.map((sach, index) => ({
-            ...sach,
-            maNXB: nxbs[index % nxbs.length]._id
-        }));
-        await Sach.insertMany(sachWithNXB);
+        // Chèn sách từng cái một
+        const sachs = [];
+        for (const sach of sachData) {
+            const newSach = new Sach({
+                ...sach,
+                maNXB: nxbs[sachs.length % nxbs.length]._id
+            });
+            await newSach.save();
+            sachs.push(newSach);
+        }
         console.log('Đã chèn dữ liệu sách');
 
-        // Chèn độc giả
-        await DocGia.insertMany(docgiaData);
+        // Chèn độc giả từng cái một
+        const docGias = [];
+        for (const docGia of docGiaData) {
+            const newDocGia = new DocGia(docGia);
+            await newDocGia.save();
+            docGias.push(newDocGia);
+        }
         console.log('Đã chèn dữ liệu độc giả');
 
-        // Chèn nhân viên
-        await NhanVien.insertMany(nhanvienData);
+        // Chèn nhân viên từng cái một
+        const nhanViens = [];
+        for (const nhanVien of nhanVienData) {
+            const newNhanVien = new NhanVien(nhanVien);
+            await newNhanVien.save();
+            nhanViens.push(newNhanVien);
+        }
         console.log('Đã chèn dữ liệu nhân viên');
 
-        console.log('Hoàn thành chèn dữ liệu mẫu');
+        // Tạo dữ liệu mượn sách mẫu
+        const muonSachData = [
+            {
+                maDocGia: docGias[0]._id,
+                maSach: sachs[0]._id,
+                ngayMuon: new Date('2024-03-01'),
+                ngayTra: new Date('2024-03-15')
+            },
+            {
+                maDocGia: docGias[1]._id,
+                maSach: sachs[1]._id,
+                ngayMuon: new Date('2024-03-05'),
+                ngayTra: new Date('2024-03-19')
+            }
+        ];
+
+        // Chèn dữ liệu mượn sách
+        await TheoDoiMuonSach.insertMany(muonSachData);
+        console.log('Đã chèn dữ liệu mượn sách');
+
+        console.log('Chèn dữ liệu mẫu thành công');
         process.exit();
     } catch (error) {
-        console.error('Lỗi khi chèn dữ liệu:', error);
+        console.warn('Lỗi khi chèn dữ liệu:', error);
         process.exit(1);
     }
 };
 
+// Chạy hàm chèn dữ liệu
 insertData(); 

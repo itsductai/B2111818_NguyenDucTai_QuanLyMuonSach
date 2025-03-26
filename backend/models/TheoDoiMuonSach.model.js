@@ -5,28 +5,25 @@ const TheoDoiMuonSachSchema = new Schema({
     maDocGia: {
         type: Schema.Types.ObjectId,
         ref: 'DocGia',
-        required: true
+        required: [true, 'Mã độc giả không được để trống']
     },
     maSach: {
         type: Schema.Types.ObjectId,
         ref: 'Sach',
-        required: true
+        required: [true, 'Mã sách không được để trống']
     },
     ngayMuon: {
         type: Date,
-        required: true,
+        required: [true, 'Ngày mượn không được để trống'],
         default: Date.now
     },
     ngayTra: {
         type: Date
-    },
-    trangThai: {
-        type: String,
-        enum: ['Đang mượn', 'Đã trả', 'Quá hạn'],
-        default: 'Đang mượn'
     }
 }, {
     timestamps: true
 });
 
-module.exports = mongoose.model('TheoDoiMuonSach', TheoDoiMuonSachSchema); 
+const TheoDoiMuonSach = mongoose.model('TheoDoiMuonSach', TheoDoiMuonSachSchema);
+
+module.exports = TheoDoiMuonSach; 

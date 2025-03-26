@@ -5,50 +5,64 @@ const Schema = mongoose.Schema;
 const NhanVienSchema = new Schema({
     maNV: {
         type: String,
-        required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     hoTenNV: {
         type: String,
-        required: true
+        required: [true, 'Họ tên không được để trống'],
+        trim: true
     },
     password: {
         type: String,
-        required: true
+        required: [true, 'Mật khẩu không được để trống'],
+        minlength: [6, 'Mật khẩu phải có ít nhất 6 ký tự']
     },
     chucVu: {
         type: String,
         enum: ['Admin', 'Nhân viên'],
-        required: true
+        required: [true, 'Chức vụ không được để trống']
     },
     diaChi: {
         type: String,
-        required: true
+        required: [true, 'Địa chỉ không được để trống'],
+        trim: true
     },
     soDienThoai: {
         type: String,
-        required: true
+        required: [true, 'Số điện thoại không được để trống'],
+        trim: true
+    },
+    email: {
+        type: String,
+        required: [true, 'Email không được để trống'],
+        unique: true,
+        trim: true,
+        lowercase: true,
+        match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email không hợp lệ']
     }
 }, {
     timestamps: true
 });
 
-// Hash mật khẩu trước khi lưu
+// Tự động tạo mã nhân viên và hash mật khẩu trước khi lưu
 NhanVienSchema.pre('save', async function(next) {
-    if (!this.isModified('password')) return next();
-    
-    try {
+    if (!this.maNV) {
+        const count = await this.constructor.countDocuments();
+        this.maNV = `NV${String(count + 1).padStart(5, '0')}`;
+    }
+    if (this.isModified('password')) {
         const salt = await bcrypt.genSalt(10);
         this.password = await bcrypt.hash(this.password, salt);
-        next();
-    } catch (error) {
-        next(error);
     }
+    next();
 });
 
-// Phương thức kiểm tra mật khẩu
+// Phương thức so sánh mật khẩu
 NhanVienSchema.methods.comparePassword = async function(candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-module.exports = mongoose.model('NhanVien', NhanVienSchema); 
+const NhanVien = mongoose.model('NhanVien', NhanVienSchema);
+
+module.exports = NhanVien; 
