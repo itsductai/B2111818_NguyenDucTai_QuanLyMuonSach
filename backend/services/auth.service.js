@@ -1,68 +1,63 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const NhanVien = require('../models/NhanVien.model');
+// const bcrypt = require('bcryptjs');
+// const NhanVien = require('../models/NhanVien.model');
 
-class AuthService {
-    /**
-     * Đăng nhập và tạo JWT token
-     * @param {string} maNV - Mã nhân viên
-     * @param {string} password - Mật khẩu
-     * @returns {Object} Thông tin đăng nhập và token
-     */
-    async login(maNV, password) {
-        // Tìm nhân viên theo mã
-        const nhanVien = await NhanVien.findOne({ maNV });
-        if (!nhanVien) {
-            throw new Error('Mã nhân viên không tồn tại');
-        }
+// class AuthService {
 
-        // Kiểm tra mật khẩu
-        const isMatch = await nhanVien.comparePassword(password);
-        if (!isMatch) {
-            throw new Error('Mật khẩu không chính xác');
-        }
+//     async login(maNV, matKhau) {
+//         // Tìm nhân viên theo mã
+//         const nhanVien = await NhanVien.findOne({ maNV });
+//         if (!nhanVien) {
+//             throw new Error('Mã nhân viên không tồn tại');
+//         }
 
-        // Tạo JWT token
-        const token = jwt.sign(
-            { id: nhanVien._id, chucVu: nhanVien.chucVu },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+//         // Kiểm tra mật khẩu
+//         const isMatch = await nhanVien.comparePassword(matKhau);
+//         if (!isMatch) {
+//             throw new Error('Mật khẩu không chính xác');
+//         }
 
-        return {
-            token,
-            nhanVien: {
-                id: nhanVien._id,
-                maNV: nhanVien.maNV,
-                hoTenNV: nhanVien.hoTenNV,
-                chucVu: nhanVien.chucVu
-            }
-        };
-    }
 
-    /**
-     * Đăng ký tài khoản nhân viên mới
-     * @param {Object} nhanVienData - Thông tin nhân viên
-     * @returns {Object} Thông tin nhân viên đã tạo
-     */
-    async register(nhanVienData) {
-        // Kiểm tra mã nhân viên đã tồn tại
-        const existingNhanVien = await NhanVien.findOne({ maNV: nhanVienData.maNV });
-        if (existingNhanVien) {
-            throw new Error('Mã nhân viên đã tồn tại');
-        }
+//         return {
+//             nhanVien: {
 
-        // Tạo nhân viên mới
-        const nhanVien = new NhanVien(nhanVienData);
-        await nhanVien.save();
+//                 maNV: nhanVien.maNV,
+//                 hoTenNV: nhanVien.hoTenNV,
+//                 email: nhanVien.email,
+//                 chucVu: nhanVien.chucVu
+//             }
+//         };
+//     }
 
-        return {
-            id: nhanVien._id,
-            maNV: nhanVien.maNV,
-            hoTenNV: nhanVien.hoTenNV,
-            chucVu: nhanVien.chucVu
-        };
-    }
-}
+//     /**
+//      * Đăng ký tài khoản nhân viên mới
+//      * @param {Object} nhanVienData - Thông tin nhân viên
+//      * @returns {Object} Thông tin nhân viên đã tạo
+//      */
+//     async register(nhanVienData) {
+//         // Email nhân viên đã tồn tại
+//         const existingNhanVien = await NhanVien.findOne({ 
+//             $or: [
+//                 { email: nhanVienData.email },
+//                 { maNV: nhanVienData.maNV }
+//             ]
+//         });
+//         if (existingNhanVien) {
+//             throw new Error('Email hoặc mã nhân viên đã tồn tại');
+//         }
 
-module.exports = new AuthService(); 
+//         // Tạo nhân viên mới
+//         const nhanVien = new NhanVien(nhanVienData);
+//         await nhanVien.save();
+
+//         return {
+//             maNV: nhanVien.maNV,
+//             hoTenNV: nhanVien.hoTenNV,
+//             email: nhanVien.email,
+//             chucVu: nhanVien.chucVu,
+//             diaChi: nhanVien.diaChi,
+//             soDienThoai: nhanVien.soDienThoai
+//         };
+//     }
+// }
+
+// module.exports = new AuthService(); 
