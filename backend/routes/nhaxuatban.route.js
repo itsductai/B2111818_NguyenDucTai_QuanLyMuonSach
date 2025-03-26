@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const nhaXuatBanController = require('../controllers/nhaxuatban.controller');
-const { verifyToken, isAdmin } = require('../middlewares/auth.middleware');
 
+console.log('nxbController:', nhaXuatBanController);
 /**
  * @route GET /api/nha-xuat-ban
  * @description Lấy danh sách nhà xuất bản
@@ -22,20 +22,20 @@ router.get('/:id', nhaXuatBanController.getById);
  * @description Thêm nhà xuất bản mới (chỉ Admin)
  * @access Private
  */
-router.post('/', [verifyToken, isAdmin], nhaXuatBanController.create);
+router.post('/', nhaXuatBanController.create);
 
 /**
  * @route PUT /api/nha-xuat-ban/:id
  * @description Cập nhật thông tin nhà xuất bản (chỉ Admin)
  * @access Private
  */
-router.put('/:id', [verifyToken, isAdmin], nhaXuatBanController.update);
+router.put('/:id', nhaXuatBanController.update);
 
 /**
  * @route DELETE /api/nha-xuat-ban/:id
  * @description Xóa nhà xuất bản (chỉ Admin)
  * @access Private
  */
-router.delete('/:id', [verifyToken, isAdmin], nhaXuatBanController.delete);
+router.delete('/:id', nhaXuatBanController.delete);
 
 module.exports = router; 

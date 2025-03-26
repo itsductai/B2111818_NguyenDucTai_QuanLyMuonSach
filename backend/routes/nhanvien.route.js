@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const nhanVienController = require('../controllers/nhanvien.controller');
-const { auth, checkRole } = require('../middleware/auth.middleware');
 
+console.log('nhanvienController:', nhanVienController);
 /**
  * @route POST /api/nhan-vien/login
  * @description Đăng nhập
@@ -15,8 +15,6 @@ router.post('/login', nhanVienController.login);
  * @description Lấy danh sách nhân viên
  * @access Private (Admin only)
  */
-router.use(verifyToken, isAdmin);
-
 router.get('/', nhanVienController.getAll);
 
 /**
@@ -24,21 +22,21 @@ router.get('/', nhanVienController.getAll);
  * @description Lấy thông tin một nhân viên
  * @access Private (Admin only)
  */
-router.get('/:id', nhanVienController.getById);
+router.get('/:id',  nhanVienController.getById);
 
 /**
  * @route POST /api/nhan-vien
  * @description Thêm nhân viên mới
  * @access Private (Admin only)
  */
-router.post('/', nhanVienController.create);
+router.post('/register',  nhanVienController.create);
 
 /**
  * @route PUT /api/nhan-vien/:id
  * @description Cập nhật thông tin nhân viên
  * @access Private (Admin only)
  */
-router.put('/:id', nhanVienController.update);
+router.put('/:id',nhanVienController.update);
 
 /**
  * @route DELETE /api/nhan-vien/:id
