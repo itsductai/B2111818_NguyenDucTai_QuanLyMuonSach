@@ -103,7 +103,7 @@ const docGiaData = [
 const nhanVienData = [
     {
         hoTenNV: 'Admin',
-        password: '123456',
+        matKhau: '123456',
         chucVu: 'Admin',
         diaChi: 'Số 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
         soDienThoai: '0123456789',
@@ -111,7 +111,7 @@ const nhanVienData = [
     },
     {
         hoTenNV: 'Nhân viên 1',
-        password: '123456',
+        matKhau: '123456',
         chucVu: 'Nhân viên',
         diaChi: 'Số 2 Đại Cồ Việt, Hai Bà Trưng, Hà Nội',
         soDienThoai: '0987654321',
@@ -163,21 +163,30 @@ const insertData = async () => {
         }
         console.log('Đã chèn dữ liệu nhân viên');
 
-        // Tạo dữ liệu mượn sách mẫu
         const muonSachData = [
             {
                 maDocGia: docGias[0]._id,
                 maSach: sachs[0]._id,
                 ngayMuon: new Date('2024-03-01'),
-                ngayTra: new Date('2024-03-15')
+                ngayTra: new Date('2024-03-15'),
+                tinhTrang: 'Đã trả',
+                maNV: nhanViens[0]._id
             },
             {
                 maDocGia: docGias[1]._id,
                 maSach: sachs[1]._id,
                 ngayMuon: new Date('2024-03-05'),
-                ngayTra: new Date('2024-03-19')
+                tinhTrang: 'Đã duyệt',
+                maNV: nhanViens[1]._id
+            },
+            {
+                maDocGia: docGias[2]._id,
+                maSach: sachs[2]._id,
+                ngayMuon: new Date('2024-03-10'),
+                tinhTrang: 'Chưa duyệt'
             }
-        ];
+            ];
+
 
         // Chèn dữ liệu mượn sách
         await TheoDoiMuonSach.insertMany(muonSachData);

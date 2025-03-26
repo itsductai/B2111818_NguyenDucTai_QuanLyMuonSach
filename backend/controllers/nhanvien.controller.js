@@ -1,166 +1,145 @@
 const NhanVien = require('../models/NhanVien.model');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
-class NhanVienController {
-    /**
-     * Đăng nhập
-     * @route POST /api/nhan-vien/login
-     */
-    async login(req, res) {
-        try {
-            const { email, password } = req.body;
+// Đăng nhập nhân viên
+exports.login = async (req, res) => {
+    try {
+        const { email, matKhau } = req.body;
+        const nhanVien = await NhanVien.findOne({ email });
 
-            // Kiểm tra email
-            const nhanVien = await NhanVien.findOne({ email });
-            if (!nhanVien) {
-                return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
-            }
-
-            // Kiểm tra mật khẩu
-            const isMatch = await nhanVien.comparePassword(password);
-            if (!isMatch) {
-                return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
-            }
-
-            // Tạo token chỉ với id và chức vụ
-            const token = jwt.sign(
-                { 
-                    id: nhanVien._id,
-                    type: nhanVien.chucVu
-                },
-                process.env.JWT_SECRET,
-                { expiresIn: '24h' }
-            );
-
-            // Trả về thông tin
-            res.json({
-                token,
-                user: {
-                    id: nhanVien._id,
-                    maNV: nhanVien.maNV,
-                    hoTenNV: nhanVien.hoTenNV,
-                    chucVu: nhanVien.chucVu,
-                    email: nhanVien.email
-                }
-            });
-        } catch (error) {
-            console.error('Lỗi đăng nhập:', error);
-            res.status(500).json({ message: 'Lỗi server' });
+        if (!nhanVien) {
+            return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
         }
-    }
 
-    /**
-     * Lấy danh sách nhân viên
-     * @route GET /api/nhan-vien
-     */
-    async getAll(req, res) {
-        try {
-            const nhanVien = await NhanVien.find()
-                .select('-password')
-                .sort({ createdAt: -1 });
-            res.json(nhanVien);
-        } catch (error) {
-            console.error('Lỗi khi lấy danh sách nhân viên:', error);
-            res.status(500).json({ message: 'Lỗi server' });
+        const isMatch = await nhanVien.comparePassword(matKhau);
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Email hoặc mật khẩu không đúng' });
         }
-    }
 
-    /**
-     * Lấy thông tin một nhân viên
-     * @route GET /api/nhan-vien/:id
-     */
-    async getById(req, res) {
-        try {
-            const nhanVien = await NhanVien.findById(req.params.id)
-                .select('-password');
-            if (!nhanVien) {
-                return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+
+        res.json({
+            message: 'Đăng nhập thành công',
+            nhanVien: {
+                _id: nhanVien._id,
+                maNV: nhanVien.maNV,
+                hoTenNV: nhanVien.hoTenNV,
+                email: nhanVien.email,
+                chucVu: nhanVien.chucVu
             }
-            res.json(nhanVien);
-        } catch (error) {
-            console.error('Lỗi khi lấy thông tin nhân viên:', error);
-            res.status(500).json({ message: 'Lỗi server' });
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Lấy danh sách nhân viên
+exports.getAll = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const nhanVien = await NhanVien.find()
+            .select('-matKhau')
+            .skip(skip)
+            .limit(limit);
+
+        const total = await NhanVien.countDocuments();
+
+        res.json({
+            message: 'Lấy danh sách nhân viên thành công',
+            nhanVien,
+            total,
+            page,
+            limit
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Lấy thông tin một nhân viên
+exports.getById = async (req, res) => {
+    try {
+        const nhanVien = await NhanVien.findById(req.params._id).select('-matKhau');
+        
+        if (!nhanVien) {
+            return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
         }
+        res.json({
+            message: 'Lấy thông tin nhân viên thành công',
+            nhanVien
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+};
 
-    /**
-     * Thêm nhân viên mới
-     * @route POST /api/nhan-vien
-     */
-    async create(req, res) {
-        try {
-            const nhanVien = new NhanVien(req.body);
-            await nhanVien.save();
-            res.status(201).json({
-                message: 'Thêm nhân viên thành công',
-                nhanVien: {
-                    id: nhanVien._id,
-                    maNV: nhanVien.maNV,
-                    hoTenNV: nhanVien.hoTenNV,
-                    chucVu: nhanVien.chucVu,
-                    email: nhanVien.email
-                }
-            });
-        } catch (error) {
-            console.error('Lỗi khi thêm nhân viên:', error);
-            if (error.code === 11000) {
-                return res.status(400).json({ message: 'Email đã tồn tại' });
+// Thêm nhân viên mới
+exports.create = async (req, res) => {
+    try {
+        const nhanVien = new NhanVien(req.body);
+        const newNhanVien = await nhanVien.save();
+
+        res.status(201).json({
+            message: 'Thêm nhân viên thành công',
+            nhanVien: {
+                _id: newNhanVien._id,
+                maNV: newNhanVien.maNV,
+                hoTenNV: newNhanVien.hoTenNV,
+                email: newNhanVien.email,
+                chucVu: newNhanVien.chucVu
             }
-            res.status(500).json({ message: 'Lỗi server' });
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Email đã tồn tại' });
         }
+        res.status(400).json({ message: error.message });
     }
+};
 
-    /**
-     * Cập nhật thông tin nhân viên
-     * @route PUT /api/nhan-vien/:id
-     */
-    async update(req, res) {
-        try {
-            const nhanVien = await NhanVien.findById(req.params.id);
-            if (!nhanVien) {
-                return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
-            }
-
-            // Cập nhật thông tin
-            Object.assign(nhanVien, req.body);
-            await nhanVien.save();
-
-            res.json({
-                message: 'Cập nhật thành công',
-                nhanVien: {
-                    id: nhanVien._id,
-                    maNV: nhanVien.maNV,
-                    hoTenNV: nhanVien.hoTenNV,
-                    chucVu: nhanVien.chucVu,
-                    email: nhanVien.email
-                }
-            });
-        } catch (error) {
-            console.error('Lỗi khi cập nhật nhân viên:', error);
-            if (error.code === 11000) {
-                return res.status(400).json({ message: 'Email đã tồn tại' });
-            }
-            res.status(500).json({ message: 'Lỗi server' });
+// Cập nhật thông tin nhân viên
+exports.update = async (req, res) => {
+    try {
+        const nhanVien = await NhanVien.findById(req.params._id);
+        if (!nhanVien) {
+            return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
         }
-    }
 
-    /**
-     * Xóa nhân viên
-     * @route DELETE /api/nhan-vien/:id
-     */
-    async delete(req, res) {
-        try {
-            const nhanVien = await NhanVien.findByIdAndDelete(req.params.id);
-            if (!nhanVien) {
-                return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+        Object.assign(nhanVien, req.body);
+        await nhanVien.save();
+
+        res.json({
+            message: 'Cập nhật thông tin nhân viên thành công',
+            nhanVien: {
+                _id: nhanVien._id,
+                maNV: nhanVien.maNV,
+                hoTenNV: nhanVien.hoTenNV,
+                email: nhanVien.email,
+                chucVu: nhanVien.chucVu,
+                diaChi: nhanVien.diaChi,
+                soDienThoai: nhanVien.soDienThoai
             }
-            res.json({ message: 'Xóa nhân viên thành công' });
-        } catch (error) {
-            console.error('Lỗi khi xóa nhân viên:', error);
-            res.status(500).json({ message: 'Lỗi server' });
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Email đã tồn tại' });
         }
+        res.status(400).json({ message: error.message });
     }
-}
+};
 
-module.exports = new NhanVienController(); 
+// Xóa nhân viên
+exports.delete = async (req, res) => {
+    try {
+        const nhanVien = await NhanVien.findById(req.params._id);
+        if (!nhanVien) {
+            return res.status(404).json({ message: 'Không tìm thấy nhân viên' });
+        }
+
+        await nhanVien.deleteOne();
+        res.json({ message: 'Xóa nhân viên thành công' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}; 

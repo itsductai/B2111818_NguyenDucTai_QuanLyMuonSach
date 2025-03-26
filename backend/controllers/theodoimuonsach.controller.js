@@ -1,149 +1,192 @@
 const TheoDoiMuonSach = require('../models/TheoDoiMuonSach.model');
 const Sach = require('../models/Sach.model');
 
-class TheoDoiMuonSachController {
-    /**
-     * Lấy danh sách phiếu mượn
-     * @route GET /api/muon-sach
-     */
-    async getAll(req, res) {
-        try {
-            const muonSach = await TheoDoiMuonSach.find();
-            res.json(muonSach);
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi lấy danh sách phiếu mượn',
-                error: error.message
-            });
-        }
+// Lấy danh sách theo dõi mượn sách
+exports.getAll = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const theoDoiMuonSach = await TheoDoiMuonSach.find()
+            .populate('maDocGia', 'maDocGia hoLot ten email')
+            .populate('maSach', 'maSach tenSach tacGia soQuyen')
+            .sort({ ngayMuon: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await TheoDoiMuonSach.countDocuments();
+
+        res.json({
+            message: 'Lấy danh sách theo dõi mượn sách thành công',
+            theoDoiMuonSach,
+            total,
+            page,
+            limit
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+};
 
-    /**
-     * Lấy thông tin một phiếu mượn
-     * @route GET /api/muon-sach/:id
-     */
-    async getById(req, res) {
-        try {
-            const muonSach = await TheoDoiMuonSach.findById(req.params.id);
-            if (!muonSach) {
-                return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
-            }
-            res.json(muonSach);
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi lấy thông tin phiếu mượn',
-                error: error.message
-            });
+// Lấy thông tin một bản ghi theo dõi mượn sách
+exports.getById = async (req, res) => {
+    try {
+        const theoDoiMuonSach = await TheoDoiMuonSach.findById(req.params._id)
+            .populate('maDocGia', 'maDocGia hoLot ten email')
+            .populate('maSach', 'maSach tenSach tacGia soQuyen');
+
+        if (!theoDoiMuonSach) {
+            return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
         }
+
+        res.json({
+            message: 'Lấy thông tin theo dõi mượn sách thành công',
+            theoDoiMuonSach
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+};
 
-    /**
-     * Tạo phiếu mượn mới
-     * @route POST /api/muon-sach
-     */
-    async create(req, res) {
-        try {
-            // Kiểm tra số lượng sách còn lại
-            const sach = await Sach.findById(req.body.maSach);
-            if (!sach) {
-                return res.status(404).json({ message: 'Không tìm thấy sách' });
-            }
-            if (sach.soQuyen <= 0) {
-                return res.status(400).json({ message: 'Sách đã hết' });
-            }
-
-            // Tạo phiếu mượn
-            const muonSach = await TheoDoiMuonSach.create(req.body);
-
-            // Giảm số lượng sách
-            await Sach.findByIdAndUpdate(req.body.maSach, {
-                $inc: { soQuyen: -1 }
-            });
-
-            res.status(201).json(muonSach);
-        } catch (error) {
-            res.status(400).json({
-                message: 'Lỗi khi tạo phiếu mượn',
-                error: error.message
-            });
+// Thêm bản ghi theo dõi mượn sách mới
+exports.create = async (req, res) => {
+    try {
+        const sach = await Sach.findById(req.body.maSach);
+        if (!sach) {
+            return res.status(404).json({ message: 'Không tìm thấy sách' });
         }
-    }
 
-    /**
-     * Cập nhật thông tin phiếu mượn
-     * @route PUT /api/muon-sach/:id
-     */
-    async update(req, res) {
-        try {
-            const muonSach = await TheoDoiMuonSach.findByIdAndUpdate(
-                req.params.id,
-                req.body,
-                { new: true }
-            );
-            if (!muonSach) {
-                return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
-            }
-            res.json(muonSach);
-        } catch (error) {
-            res.status(400).json({
-                message: 'Lỗi khi cập nhật phiếu mượn',
-                error: error.message
-            });
+        if (sach.soQuyen <= 0) {
+            return res.status(400).json({ message: 'Sách đã hết' });
         }
+
+        const theoDoiMuonSach = new TheoDoiMuonSach(req.body);
+        const newTheoDoiMuonSach = await theoDoiMuonSach.save();
+
+        // Giảm số lượng sách
+        sach.soQuyen -= 1;
+        await sach.save();
+
+        res.status(201).json({
+            message: 'Thêm bản ghi theo dõi mượn sách thành công',
+            theoDoiMuonSach: newTheoDoiMuonSach
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
     }
+};
 
-    /**
-     * Trả sách
-     * @route PUT /api/muon-sach/:id/tra
-     */
-    async traSach(req, res) {
-        try {
-            const muonSach = await TheoDoiMuonSach.findById(req.params.id);
-            if (!muonSach) {
-                return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
-            }
+// Duyệt phiếu mượn sách
+exports.approveMuonSach = async (req, res) => {
+    try {
+        const { maNV } = req.body;
+        const muonSach = await TheoDoiMuonSach.findById(req.params.id);
 
-            if (muonSach.trangThai === 'Đã trả') {
-                return res.status(400).json({ message: 'Sách đã được trả' });
-            }
-
-            // Cập nhật phiếu mượn
-            muonSach.ngayTraThucTe = new Date();
-            muonSach.trangThai = 'Đã trả';
-            await muonSach.save();
-
-            // Tăng số lượng sách
-            await Sach.findByIdAndUpdate(muonSach.maSach, {
-                $inc: { soQuyen: 1 }
-            });
-
-            res.json(muonSach);
-        } catch (error) {
-            res.status(400).json({
-                message: 'Lỗi khi trả sách',
-                error: error.message
-            });
+        if (!muonSach) {
+            return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
         }
-    }
 
-    /**
-     * Xóa phiếu mượn
-     * @route DELETE /api/muon-sach/:id
-     */
-    async delete(req, res) {
-        try {
-            const muonSach = await TheoDoiMuonSach.findByIdAndDelete(req.params.id);
-            if (!muonSach) {
-                return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
-            }
-            res.json({ message: 'Xóa phiếu mượn thành công' });
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi xóa phiếu mượn',
-                error: error.message
-            });
+        if (muonSach.tinhTrang !== 'Chưa duyệt') {
+            return res.status(400).json({ message: 'Phiếu mượn đã được duyệt hoặc đã trả' });
         }
-    }
-}
 
-module.exports = new TheoDoiMuonSachController(); 
+        muonSach.tinhTrang = 'Đã duyệt';
+        muonSach.maNV = maNV;
+
+        await muonSach.save();
+
+        res.json({
+            message: 'Duyệt phiếu mượn thành công',
+            muonSach
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+
+// Cập nhật ngày trả sách
+exports.update = async (req, res) => {
+    try {
+        const theoDoiMuonSach = await TheoDoiMuonSach.findById(req.params._id);
+        if (!theoDoiMuonSach) {
+            return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
+        }
+
+        if (theoDoiMuonSach.ngayTra) {
+            return res.status(400).json({ message: 'Sách đã được trả' });
+        }
+
+        theoDoiMuonSach.ngayTra = new Date();
+        theoDoiMuonSach.tinhTrang = 'Đã trả';
+        await theoDoiMuonSach.save();
+
+        const sach = await Sach.findById(theoDoiMuonSach.maSach);
+        sach.soQuyen += 1;
+        await sach.save();
+
+        res.json({
+            message: 'Cập nhật ngày trả sách thành công',
+            theoDoiMuonSach
+        });
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+};
+
+
+// Xóa bản ghi theo dõi mượn sách
+exports.delete = async (req, res) => {
+    try {
+        const theoDoiMuonSach = await TheoDoiMuonSach.findById(req.params._id);
+        if (!theoDoiMuonSach) {
+            return res.status(404).json({ message: 'Không tìm thấy bản ghi theo dõi mượn sách' });
+        }
+
+        // Nếu chưa trả sách, tăng số lượng sách
+        if (!theoDoiMuonSach.ngayTra) {
+            const sach = await Sach.findById(theoDoiMuonSach.maSach);
+            sach.soQuyen += 1;
+            await sach.save();
+        }
+
+        await theoDoiMuonSach.deleteOne();
+        res.json({ message: 'Xóa bản ghi theo dõi mượn sách thành công' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Lấy danh sách sách đang mượn của một độc giả
+exports.getByDocGia = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const theoDoiMuonSach = await TheoDoiMuonSach.find({ 
+            maDocGia: req.params.maDocGia,
+            ngayTra: null 
+        })
+            .populate('maSach', 'maSach tenSach tacGia soQuyen')
+            .sort({ ngayMuon: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await TheoDoiMuonSach.countDocuments({ 
+            maDocGia: req.params.maDocGia,
+            ngayTra: null 
+        });
+
+        res.json({
+            message: 'Lấy danh sách sách đang mượn thành công',
+            theoDoiMuonSach,
+            total,
+            page,
+            limit
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}; 

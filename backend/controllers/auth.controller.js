@@ -8,17 +8,17 @@ class AuthController {
      */
     async login(req, res) {
         try {
-            const { maNV, password } = req.body;
+            const { maNV, matKhau } = req.body;
 
             // Kiểm tra dữ liệu đầu vào
-            if (!maNV || !password) {
+            if (!maNV || !matKhau) {
                 return res.status(400).json({
                     message: 'Vui lòng nhập đầy đủ mã nhân viên và mật khẩu'
                 });
             }
 
             // Gọi service xử lý đăng nhập
-            const result = await authService.login(maNV, password);
+            const result = await authService.login(maNV, matKhau);
 
             res.json({
                 message: 'Đăng nhập thành công',
@@ -38,10 +38,10 @@ class AuthController {
      */
     async register(req, res) {
         try {
-            const { maNV, hoTenNV, password, chucVu, diaChi, soDienThoai } = req.body;
+            const { maNV, hoTenNV, matKhau, chucVu, diaChi, soDienThoai, email } = req.body;
 
             // Kiểm tra dữ liệu đầu vào
-            if (!maNV || !hoTenNV || !password || !chucVu || !diaChi || !soDienThoai) {
+            if (!maNV || !hoTenNV || !matKhau || !chucVu || !diaChi || !soDienThoai || !email) {
                 return res.status(400).json({
                     message: 'Vui lòng nhập đầy đủ thông tin nhân viên'
                 });
@@ -51,17 +51,26 @@ class AuthController {
             const nhanVien = await authService.register({
                 maNV,
                 hoTenNV,
-                password,
+                matKhau,
                 chucVu,
                 diaChi,
-                soDienThoai
+                soDienThoai,
+                email
             });
 
             res.status(201).json({
                 message: 'Đăng ký tài khoản thành công',
-                nhanVien
+                nhanVien: {
+                    maNV: nhanVien.maNV,
+                    hoTenNV: nhanVien.hoTenNV,
+                    email: nhanVien.email,
+                    chucVu: nhanVien.chucVu
+                }
             });
         } catch (error) {
+            if (error.code === 11000) {
+                return res.status(400).json({ message: 'Email hoặc mã nhân viên đã tồn tại' });
+            }
             res.status(400).json({
                 message: error.message || 'Đăng ký tài khoản thất bại'
             });

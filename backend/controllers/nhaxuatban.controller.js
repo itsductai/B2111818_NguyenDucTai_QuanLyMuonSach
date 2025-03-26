@@ -1,98 +1,108 @@
 const NhaXuatBan = require('../models/NhaXuatBan.model');
+const Sach = require('../models/Sach.model');
 
-class NhaXuatBanController {
-    /**
-     * Lấy danh sách nhà xuất bản
-     * @route GET /api/nha-xuat-ban
-     */
-    async getAll(req, res) {
-        try {
-            const nhaXuatBan = await NhaXuatBan.find();
-            res.json(nhaXuatBan);
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi lấy danh sách nhà xuất bản',
-                error: error.message
-            });
-        }
+// Lấy danh sách nhà xuất bản
+exports.getAll = async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const nhaXuatBan = await NhaXuatBan.find()
+            .sort({ maNXB: 1 })
+            .skip(skip)
+            .limit(limit);
+
+        const total = await NhaXuatBan.countDocuments();
+
+        res.json({
+            message: 'Lấy danh sách nhà xuất bản thành công',
+            nhaXuatBan,
+            total,
+            page,
+            limit
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+};
 
-    /**
-     * Lấy thông tin một nhà xuất bản
-     * @route GET /api/nha-xuat-ban/:id
-     */
-    async getById(req, res) {
-        try {
-            const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
-            if (!nhaXuatBan) {
-                return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
-            }
-            res.json(nhaXuatBan);
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi lấy thông tin nhà xuất bản',
-                error: error.message
-            });
+// Lấy thông tin một nhà xuất bản
+exports.getById = async (req, res) => {
+    try {
+        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        
+        if (!nhaXuatBan) {
+            return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
         }
-    }
 
-    /**
-     * Thêm nhà xuất bản mới
-     * @route POST /api/nha-xuat-ban
-     */
-    async create(req, res) {
-        try {
-            const nhaXuatBan = await NhaXuatBan.create(req.body);
-            res.status(201).json(nhaXuatBan);
-        } catch (error) {
-            res.status(400).json({
-                message: 'Lỗi khi thêm nhà xuất bản',
-                error: error.message
-            });
+        res.json({
+            message: 'Lấy thông tin nhà xuất bản thành công',
+            nhaXuatBan
+        });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Thêm nhà xuất bản mới
+exports.create = async (req, res) => {
+    try {
+        const nhaXuatBan = new NhaXuatBan(req.body);
+        const newNhaXuatBan = await nhaXuatBan.save();
+
+        res.status(201).json({
+            message: 'Thêm nhà xuất bản thành công',
+            nhaXuatBan: newNhaXuatBan
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Mã nhà xuất bản đã tồn tại' });
         }
+        res.status(400).json({ message: error.message });
     }
+};
 
-    /**
-     * Cập nhật thông tin nhà xuất bản
-     * @route PUT /api/nha-xuat-ban/:id
-     */
-    async update(req, res) {
-        try {
-            const nhaXuatBan = await NhaXuatBan.findByIdAndUpdate(
-                req.params.id,
-                req.body,
-                { new: true }
-            );
-            if (!nhaXuatBan) {
-                return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
-            }
-            res.json(nhaXuatBan);
-        } catch (error) {
-            res.status(400).json({
-                message: 'Lỗi khi cập nhật nhà xuất bản',
-                error: error.message
-            });
+// Cập nhật thông tin nhà xuất bản
+exports.update = async (req, res) => {
+    try {
+        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        if (!nhaXuatBan) {
+            return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
         }
-    }
 
-    /**
-     * Xóa nhà xuất bản
-     * @route DELETE /api/nha-xuat-ban/:id
-     */
-    async delete(req, res) {
-        try {
-            const nhaXuatBan = await NhaXuatBan.findByIdAndDelete(req.params.id);
-            if (!nhaXuatBan) {
-                return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
-            }
-            res.json({ message: 'Xóa nhà xuất bản thành công' });
-        } catch (error) {
-            res.status(500).json({
-                message: 'Lỗi khi xóa nhà xuất bản',
-                error: error.message
-            });
+        Object.assign(nhaXuatBan, req.body);
+        await nhaXuatBan.save();
+
+        res.json({
+            message: 'Cập nhật thông tin nhà xuất bản thành công',
+            nhaXuatBan
+        });
+    } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Mã nhà xuất bản đã tồn tại' });
         }
+        res.status(400).json({ message: error.message });
     }
-}
+};
 
-module.exports = new NhaXuatBanController(); 
+// Xóa nhà xuất bản
+exports.delete = async (req, res) => {
+    try {
+        const nhaXuatBan = await NhaXuatBan.findById(req.params.id);
+        if (!nhaXuatBan) {
+            return res.status(404).json({ message: 'Không tìm thấy nhà xuất bản' });
+        }
+
+        // Kiểm tra xem nhà xuất bản có sách không
+        const coSach = await Sach.findOne({ maNhaXuatBan: req.params.id });
+        if (coSach) {
+            return res.status(400).json({ message: 'Không thể xóa nhà xuất bản đang có sách' });
+        }
+
+        await nhaXuatBan.deleteOne();
+        res.json({ message: 'Xóa nhà xuất bản thành công' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}; 
