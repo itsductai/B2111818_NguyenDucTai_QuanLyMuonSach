@@ -13,7 +13,7 @@ const NhanVienSchema = new Schema({
         required: [true, 'Họ tên không được để trống'],
         trim: true
     },
-    password: {
+    matKhau: {
         type: String,
         required: [true, 'Mật khẩu không được để trống'],
         minlength: [6, 'Mật khẩu phải có ít nhất 6 ký tự']
@@ -51,16 +51,16 @@ NhanVienSchema.pre('save', async function(next) {
         const count = await this.constructor.countDocuments();
         this.maNV = `NV${String(count + 1).padStart(5, '0')}`;
     }
-    if (this.isModified('password')) {
+    if (this.isModified('matKhau')) {
         const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
+        this.matKhau = await bcrypt.hash(this.matKhau, salt);
     }
     next();
 });
 
 // Phương thức so sánh mật khẩu
 NhanVienSchema.methods.comparePassword = async function(candidatePassword) {
-    return bcrypt.compare(candidatePassword, this.password);
+    return bcrypt.compare(candidatePassword, this.matKhau);
 };
 
 const NhanVien = mongoose.model('NhanVien', NhanVienSchema);
