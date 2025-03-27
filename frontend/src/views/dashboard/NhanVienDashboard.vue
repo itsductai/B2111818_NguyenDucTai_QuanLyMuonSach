@@ -37,46 +37,14 @@
                     <td colspan="4" class="text-center">Không có phiếu mượn nào chờ duyệt</td>
                   </tr>
                   <tr v-for="borrow in pendingBorrows" :key="borrow._id">
-                    <td>{{ borrow.docGia?.hoLot }} {{ borrow.docGia?.ten }}</td>
-                    <td>{{ borrow.sach?.tenSach }}</td>
+                    <td>{{ borrow.maDocGia?.hoLot }} {{ borrow.maDocGia?.ten }}</td>
+                    <td>{{ borrow.maSach?.tenSach }}</td>
                     <td>{{ formatDate(borrow.ngayMuon) }}</td>
                     <td>
                       <router-link :to="`/quan-ly/muon-sach/${borrow._id}`" class="btn btn-primary btn-sm">
                         Xem chi tiết
                       </router-link>
                     </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-        
-        <div class="dashboard-col">
-          <div class="card">
-            <div class="card-header">
-              <h2 class="card-title">Sách mới nhất</h2>
-              <router-link to="/quan-ly/sach" class="btn btn-secondary btn-sm">
-                Xem tất cả
-              </router-link>
-            </div>
-            <div class="card-body">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Tên sách</th>
-                    <th>Tác giả</th>
-                    <th>Số lượng</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-if="latestBooks.length === 0">
-                    <td colspan="3" class="text-center">Không có sách nào</td>
-                  </tr>
-                  <tr v-for="book in latestBooks" :key="book._id">
-                    <td>{{ book.tenSach }}</td>
-                    <td>{{ book.tacGia }}</td>
-                    <td>{{ book.soQuyen }}</td>
                   </tr>
                 </tbody>
               </table>

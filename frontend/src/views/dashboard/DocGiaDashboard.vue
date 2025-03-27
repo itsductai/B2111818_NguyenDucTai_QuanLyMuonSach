@@ -67,7 +67,7 @@
                     <td colspan="4" class="text-center">Bạn chưa mượn sách nào</td>
                   </tr>
                   <tr v-for="borrow in currentBorrows" :key="borrow._id">
-                    <td>{{ borrow.sach?.tenSach }}</td>
+                    <td>{{ borrow.maSach?.tenSach }}</td>
                     <td>{{ formatDate(borrow.ngayMuon) }}</td>
                     <td>
                       <span 
