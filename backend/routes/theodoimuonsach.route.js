@@ -10,6 +10,15 @@ console.log('theodoiController:', theoDoiMuonSachController);
  */
 router.get('/', theoDoiMuonSachController.getAll);
 
+
+/**
+ * @route GET /api/muon-sach/doc-gia/:maDocGia
+ * @description Lấy danh sách sách đang mượn của một độc giả
+ * @access Private
+ */
+// routes/theodoimuonsach.route.js
+router.get('/doc-gia/:maDocGia', theoDoiMuonSachController.getByDocGiaId);
+
 /**
  * @route GET /api/muon-sach/:id
  * @description Lấy thông tin một phiếu mượn
@@ -31,6 +40,8 @@ router.post('/', theoDoiMuonSachController.create);
  */
 router.patch('/:_id/duyet', theoDoiMuonSachController.approveMuonSach);
 
+router.patch('/doc-gia/trasach/:_id', theoDoiMuonSachController.returnSachByDocGia);
+
 
 router.put('/:_id', theoDoiMuonSachController.update);
 
@@ -41,11 +52,6 @@ router.put('/:_id', theoDoiMuonSachController.update);
  */
 router.delete('/:_id', theoDoiMuonSachController.delete);
 
-/**
- * @route GET /api/muon-sach/doc-gia/:maDocGia
- * @description Lấy danh sách sách đang mượn của một độc giả
- * @access Private
- */
-router.get('/doc-gia/:maDocGia', theoDoiMuonSachController.getByDocGia);
+
 
 module.exports = router; 

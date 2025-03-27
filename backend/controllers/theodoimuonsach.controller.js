@@ -1,5 +1,6 @@
 const TheoDoiMuonSach = require('../models/TheoDoiMuonSach.model');
 const Sach = require('../models/Sach.model');
+const NhanVien = require('../models/NhanVien.model');
 
 // Lấy danh sách theo dõi mượn sách
 exports.getAll = async (req, res) => {
@@ -28,6 +29,37 @@ exports.getAll = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+// controllers/theodoimuonsach.controller.js
+exports.getByDocGiaId = async (req, res) => {
+  try {
+    const maDocGia = req.params.maDocGia;
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const records = await TheoDoiMuonSach.find({ maDocGia })
+      .populate('maDocGia', 'maDocGia hoLot ten email')
+      .populate('maSach', 'maSach tenSach tacGia soQuyen')
+      .skip(skip)
+      .limit(limit);
+
+    const total = await TheoDoiMuonSach.countDocuments({ maDocGia });
+
+    res.json({
+      message: 'Lấy danh sách phiếu mượn theo độc giả thành công',
+      theoDoiMuonSach: records,
+      total,
+      page,
+      limit
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 // Lấy thông tin một bản ghi theo dõi mượn sách
 exports.getById = async (req, res) => {
@@ -82,6 +114,7 @@ exports.approveMuonSach = async (req, res) => {
     try {
         const { maNV } = req.body;
         const muonSach = await TheoDoiMuonSach.findById(req.params._id);
+        const nhanVien = await NhanVien.findById(maNV);
 
         if (!muonSach) {
             return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
@@ -89,6 +122,10 @@ exports.approveMuonSach = async (req, res) => {
 
         if (muonSach.tinhTrang !== 'Chưa duyệt') {
             return res.status(400).json({ message: 'Phiếu mượn đã được duyệt hoặc đã trả' });
+        }
+
+        if (!nhanVien) {
+            return res.status(404).json({ message: 'Không tìm thấy nhân viên duyệt' });
         }
 
         muonSach.tinhTrang = 'Đã duyệt';
@@ -135,6 +172,41 @@ exports.update = async (req, res) => {
     }
 };
 
+// Trả sách từ phía độc giả
+exports.returnSachByDocGia = async (req, res) => {
+  try {
+    const muonSach = await TheoDoiMuonSach.findById(req.params._id);
+
+    if (!muonSach) {
+      return res.status(404).json({ message: 'Không tìm thấy phiếu mượn' });
+    }
+
+    if (muonSach.tinhTrang === 'Đã trả') {
+      return res.status(400).json({ message: 'Sách đã được trả' });
+    }
+
+    // Cập nhật tình trạng và ngày trả
+    muonSach.tinhTrang = 'Đã trả';
+    muonSach.ngayTraThucTe = new Date();
+    await muonSach.save();
+
+    // Tăng số lượng sách trong kho
+    const sach = await Sach.findById(muonSach.maSach);
+    if (sach) {
+      sach.soQuyen += 1;
+      await sach.save();
+    }
+
+    res.json({
+      message: 'Trả sách thành công',
+      muonSach
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 // Xóa bản ghi theo dõi mượn sách
 exports.delete = async (req, res) => {
@@ -157,36 +229,3 @@ exports.delete = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 };
-
-// Lấy danh sách sách đang mượn của một độc giả
-exports.getByDocGia = async (req, res) => {
-    try {
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
-
-        const theoDoiMuonSach = await TheoDoiMuonSach.find({ 
-            maDocGia: req.params.maDocGia,
-            ngayTra: null 
-        })
-            .populate('maSach', 'maSach tenSach tacGia soQuyen')
-            .sort({ ngayMuon: -1 })
-            .skip(skip)
-            .limit(limit);
-
-        const total = await TheoDoiMuonSach.countDocuments({ 
-            maDocGia: req.params.maDocGia,
-            ngayTra: null 
-        });
-
-        res.json({
-            message: 'Lấy danh sách sách đang mượn thành công',
-            theoDoiMuonSach,
-            total,
-            page,
-            limit
-        });
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}; 

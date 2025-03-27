@@ -24,6 +24,9 @@ const TheoDoiMuonSachSchema = new Schema({
     ngayTra: {
         type: Date
     },
+    ngayTraThucTe: {
+        type: Date
+    },
     tinhTrang: {
         type: String,
         enum: ['Chưa duyệt', 'Đã duyệt', 'Đã trả'],
