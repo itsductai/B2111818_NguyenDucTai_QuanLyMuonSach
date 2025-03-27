@@ -1,187 +1,254 @@
 <template>
-  <div class="sach-form">
-    <h3>{{ isEdit ? "Cập nhật sách" : "Thêm sách mới" }}</h3>
-    <form @submit.prevent="handleSubmit" class="needs-validation" novalidate>
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Tên sách</label>
-          <input
-            type="text"
-            class="form-control"
-            v-model="formData.tenSach"
-            required
-          />
-          <div class="invalid-feedback">
-            Vui lòng nhập tên sách
-          </div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Nhà xuất bản</label>
-          <select class="form-select" v-model="formData.maNXB" required>
-            <option value="">Chọn nhà xuất bản</option>
-            <option
-              v-for="nxb in nhaXuatBans"
-              :key="nxb._id"
-              :value="nxb._id"
-            >
-              {{ nxb.tenNXB }}
-            </option>
-          </select>
-          <div class="invalid-feedback">
-            Vui lòng chọn nhà xuất bản
-          </div>
-        </div>
-      </div>
+  <div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">
+          {{ isEditing ? 'Cập nhật sách' : 'Thêm sách mới' }}
+        </h2>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Đơn giá</label>
-          <div class="input-group">
+        <form @submit.prevent="handleSubmit" class="space-y-6">
+          <!-- Tên sách -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Tên sách <span class="text-red-500">*</span>
+            </label>
             <input
-              type="number"
-              class="form-control"
+              v-model="formData.tenSach"
+              type="text"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.tenSach }"
+            />
+            <p v-if="errors.tenSach" class="mt-1 text-sm text-red-500">
+              {{ errors.tenSach }}
+            </p>
+          </div>
+
+          <!-- Tác giả -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Tác giả <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model="formData.tacGia"
+              type="text"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.tacGia }"
+            />
+            <p v-if="errors.tacGia" class="mt-1 text-sm text-red-500">
+              {{ errors.tacGia }}
+            </p>
+          </div>
+
+          <!-- Nhà xuất bản -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Nhà xuất bản <span class="text-red-500">*</span>
+            </label>
+            <select
+              v-model="formData.maNXB"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.maNXB }"
+            >
+              <option value="">Chọn nhà xuất bản</option>
+              <option v-for="nxb in nhaXuatBans" :key="nxb._id" :value="nxb._id">
+                {{ nxb.tenNXB }}
+              </option>
+            </select>
+            <p v-if="errors.maNXB" class="mt-1 text-sm text-red-500">
+              {{ errors.maNXB }}
+            </p>
+          </div>
+
+          <!-- Đơn giá -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Đơn giá <span class="text-red-500">*</span>
+            </label>
+            <input
               v-model.number="formData.donGia"
+              type="number"
               min="0"
               required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.donGia }"
             />
-            <span class="input-group-text">VNĐ</span>
+            <p v-if="errors.donGia" class="mt-1 text-sm text-red-500">
+              {{ errors.donGia }}
+            </p>
           </div>
-          <div class="invalid-feedback">
-            Vui lòng nhập đơn giá hợp lệ
-          </div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Số quyển</label>
-          <input
-            type="number"
-            class="form-control"
-            v-model.number="formData.soQuyen"
-            min="0"
-            required
-          />
-          <div class="invalid-feedback">
-            Vui lòng nhập số quyển hợp lệ
-          </div>
-        </div>
-      </div>
 
-      <div class="row">
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Năm xuất bản</label>
-          <input
-            type="number"
-            class="form-control"
-            v-model.number="formData.namXuatBan"
-            :min="1900"
-            :max="new Date().getFullYear()"
-            required
-          />
-          <div class="invalid-feedback">
-            Vui lòng nhập năm xuất bản hợp lệ
+          <!-- Số quyển -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Số quyển <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model.number="formData.soQuyen"
+              type="number"
+              min="0"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.soQuyen }"
+            />
+            <p v-if="errors.soQuyen" class="mt-1 text-sm text-red-500">
+              {{ errors.soQuyen }}
+            </p>
           </div>
-        </div>
-        <div class="col-md-6 mb-3">
-          <label class="form-label">Tác giả</label>
-          <input
-            type="text"
-            class="form-control"
-            v-model="formData.tacGia"
-            required
-          />
-          <div class="invalid-feedback">
-            Vui lòng nhập tên tác giả
-          </div>
-        </div>
-      </div>
 
-      <div class="d-flex justify-content-end gap-2 mt-4">
-        <button type="button" class="btn btn-secondary" @click="$emit('cancel')">
-          Hủy
-        </button>
-        <button type="submit" class="btn btn-primary">
-          {{ isEdit ? 'Cập nhật' : 'Thêm mới' }}
-        </button>
+          <!-- Năm xuất bản -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Năm xuất bản <span class="text-red-500">*</span>
+            </label>
+            <input
+              v-model.number="formData.namXuatBan"
+              type="number"
+              :min="1900"
+              :max="new Date().getFullYear()"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              :class="{ 'border-red-500': errors.namXuatBan }"
+            />
+            <p v-if="errors.namXuatBan" class="mt-1 text-sm text-red-500">
+              {{ errors.namXuatBan }}
+            </p>
+          </div>
+
+          <!-- Nút submit -->
+          <div class="flex justify-end space-x-4">
+            <button
+              type="button"
+              @click="$router.push('/sach')"
+              class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Hủy
+            </button>
+            <button
+              type="submit"
+              class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              :disabled="isSubmitting"
+            >
+              <i v-if="isSubmitting" class="fas fa-spinner fa-spin mr-2"></i>
+              {{ isEditing ? 'Cập nhật' : 'Thêm mới' }}
+            </button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   </div>
 </template>
 
 <script>
-import { nhaXuatBanService } from '@/services/api.service'
+import { ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 
 export default {
   name: 'SachForm',
-  props: {
-    sach: {
-      type: Object,
-      default: null
+  setup() {
+    const route = useRoute()
+    const router = useRouter()
+    const isEditing = ref(false)
+    const isSubmitting = ref(false)
+    const nhaXuatBans = ref([])
+
+    const formData = ref({
+      tenSach: '',
+      tacGia: '',
+      maNXB: '',
+      donGia: 0,
+      soQuyen: 0,
+      namXuatBan: new Date().getFullYear()
+    })
+
+    const errors = ref({})
+
+    const validateForm = () => {
+      const newErrors = {}
+
+      if (!formData.value.tenSach.trim()) {
+        newErrors.tenSach = 'Vui lòng nhập tên sách'
+      }
+
+      if (!formData.value.tacGia.trim()) {
+        newErrors.tacGia = 'Vui lòng nhập tên tác giả'
+      }
+
+      if (!formData.value.maNXB) {
+        newErrors.maNXB = 'Vui lòng chọn nhà xuất bản'
+      }
+
+      if (formData.value.donGia < 0) {
+        newErrors.donGia = 'Đơn giá không được âm'
+      }
+
+      if (formData.value.soQuyen < 0) {
+        newErrors.soQuyen = 'Số quyển không được âm'
+      }
+
+      const currentYear = new Date().getFullYear()
+      if (formData.value.namXuatBan < 1900 || formData.value.namXuatBan > currentYear) {
+        newErrors.namXuatBan = `Năm xuất bản phải từ 1900 đến ${currentYear}`
+      }
+
+      errors.value = newErrors
+      return Object.keys(newErrors).length === 0
     }
-  },
-  data() {
-    return {
-      formData: {
-        tenSach: '',
-        maNXB: '',
-        donGia: 0,
-        soQuyen: 0,
-        namXuatBan: new Date().getFullYear(),
-        tacGia: ''
-      },
-      nhaXuatBans: []
-    }
-  },
-  computed: {
-    isEdit() {
-      return !!this.sach
-    }
-  },
-  async created() {
-    await this.fetchNhaXuatBans()
-    if (this.sach) {
-      this.formData = { ...this.sach }
-    }
-  },
-  methods: {
-    async fetchNhaXuatBans() {
+
+    const fetchNhaXuatBan = async () => {
       try {
-        const data = await nhaXuatBanService.getAll()
-        this.nhaXuatBans = data
+        const response = await axios.get('http://localhost:3000/api/nhaxuatban')
+        nhaXuatBans.value = response.data
       } catch (error) {
         console.error('Lỗi khi lấy danh sách nhà xuất bản:', error)
       }
-    },
-    handleSubmit() {
-      // Validate form
-      if (!this.$el.checkValidity()) {
-        this.$el.classList.add('was-validated')
-        return
+    }
+
+    const fetchSach = async (id) => {
+      try {
+        const response = await axios.get(`http://localhost:3000/api/sach/${id}`)
+        formData.value = response.data
+      } catch (error) {
+        console.error('Lỗi khi lấy thông tin sách:', error)
+        router.push('/sach')
       }
-      this.$emit('submit', this.formData)
+    }
+
+    const handleSubmit = async () => {
+      if (!validateForm()) {
+        return;
+      }
+
+      try {
+        isSubmitting.value = true;
+        const sachData = { ...formData.value };
+        emit('submit', sachData);
+      } catch (error) {
+        console.error('Lỗi khi submit form:', error);
+      } finally {
+        isSubmitting.value = false;
+      }
+    };
+
+    onMounted(async () => {
+      await fetchNhaXuatBan()
+      if (route.params.id) {
+        isEditing.value = true
+        await fetchSach(route.params.id)
+      }
+    })
+
+    return {
+      formData,
+      errors,
+      isEditing,
+      isSubmitting,
+      nhaXuatBans,
+      handleSubmit
     }
   }
 }
-</script>
-
-<style scoped>
-.sach-form {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-label {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.invalid-feedback {
-  font-size: 0.875rem;
-}
-
-.btn {
-  padding: 0.5rem 1.5rem;
-}
-</style>
+</script> 
